@@ -129,8 +129,6 @@
                   .then((accessToken) => {
                     getDownloadLink(encodedUrl, accessToken)
                       .then((downloadUrl) => {
-                        console.log("Direct download URL:", downloadUrl);
-
                         document.getElementById(
                           "pickedFiles"
                         ).innerHTML = `<pre>${JSON.stringify(
@@ -146,6 +144,7 @@
                           data: {
                             result: "success",
                             downloadUrl: downloadUrl, // include the download URL in your response data
+                            command: command.items[0],
                           },
                         });
 
