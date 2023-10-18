@@ -151,7 +151,14 @@
 
                         sendMessageBackToReactApp(downloadUrl);
 
-                        win.close();
+                        if (win && !win.closed) {
+                          // Check if win is still a valid reference and the window is not already closed
+                          win.close();
+                        } else {
+                          console.error(
+                            "Window reference lost or window already closed"
+                          );
+                        }
                       })
                       .catch((error) => {
                         console.error(
