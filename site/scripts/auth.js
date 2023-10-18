@@ -12,21 +12,35 @@ const app = new msal.PublicClientApplication(msalParams);
 async function getToken() {
   let accessToken = "";
 
-  authParams = { scopes: ["Files.ReadWrite.All"] };
+  const authParams = { scopes: ["Files.ReadWrite.All", "User.Read"] };
 
   try {
+    const accounts = app.getAllAccounts();
+    if (accounts.length === 0) {
+      // No accounts detected, user must login
+      try {
+        const loginResponse = await app.loginPopup(authParams);
+        app.setActiveAccount(loginResponse.account);
+      } catch (err) {
+        console.error(err); // Handle or log errors from loginPopup
+        return null; // or handle this appropriately
+      }
+    }
     // see if we have already the idtoken saved
     const resp = await app.acquireTokenSilent(authParams);
     accessToken = resp.accessToken;
   } catch (e) {
-    console.log(e);
-    // per examples we fall back to popup
-    const resp = await app.loginPopup(authParams);
-    app.setActiveAccount(resp.account);
-
-    if (resp.idToken) {
-      const resp2 = await app.acquireTokenSilent(authParams);
-      accessToken = resp2.accessToken;
+    console.error(e); // Log the error for debugging purposes
+    if (e instanceof msal.InteractionRequiredAuthError) {
+      // If interaction is required, user must authenticate with a popup or redirect
+      try {
+        const loginResponse = await app.loginPopup(authParams);
+        app.setActiveAccount(loginResponse.account);
+        const resp = await app.acquireTokenSilent(authParams);
+        accessToken = resp.accessToken;
+      } catch (err) {
+        console.error(err); // Handle or log any errors from the popup method
+      }
     }
   }
 
