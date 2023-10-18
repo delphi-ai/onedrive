@@ -36,13 +36,12 @@
       async function launchPicker(e) {
         if (e) e.preventDefault();
 
-        win = window.open("", "Picker", "width=800,height=600");
-
         const authToken = await getToken();
         if (!authToken) {
           console.error("No access token received");
           return;
         }
+        win = window.open("", "Picker", "width=800,height=600");
 
         const queryString = new URLSearchParams({
           filePicker: JSON.stringify(params),
