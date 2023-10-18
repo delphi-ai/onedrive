@@ -85,7 +85,7 @@
       async function messageListener(message) {
         switch (message.data.type) {
           case "notification":
-            console.log(`notification: ${message.data}`);
+            console.log(message.data);
             break;
 
           case "command":
