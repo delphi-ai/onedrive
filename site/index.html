@@ -149,6 +149,8 @@
                           },
                         });
 
+                        sendMessageBackToReactApp(downloadUrl);
+
                         win.close();
                       })
                       .catch((error) => {
@@ -254,6 +256,15 @@
       const webUrl = "https://1drv.ms/w/s!AMOpTlWuqN5aghc";
       const encodedUrl = encodeSharingUrl(webUrl);
 
+      function sendMessageBackToReactApp(message) {
+        if (window.opener) {
+          // The second argument "*" is the target origin. It's a security measure.
+          // In a real-world scenario, you should replace "*" with the origin of your React app.
+          window.opener.postMessage(message, "*");
+        } else {
+          console.error("No reference to opener window");
+        }
+      }
       window.onload = function () {
         launchPicker(); // Calling the function directly, no event involved.
       };
