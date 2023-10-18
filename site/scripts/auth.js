@@ -1,7 +1,6 @@
 const msalParams = {
   auth: {
-    authority:
-      "https://login.microsoftonline.com/452dc845-891d-4630-a9b3-a3146f06f38e",
+    authority: "https://login.microsoftonline.com/consumers",
     clientId: "1a541581-bada-4818-8149-b3ab0b544ed3",
     redirectUri: "https://site-production-4e08.up.railway.app",
   },
