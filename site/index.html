@@ -127,31 +127,25 @@
                 // Assume `accessToken` is retrieved through your authentication flow.
                 getToken()
                   .then((accessToken) => {
-                    getDownloadLink(encodedUrl, accessToken)
-                      .then((downloadUrl) => {
-                        document.getElementById(
-                          "pickedFiles"
-                        ).innerHTML = `<pre>${JSON.stringify(
-                          downloadUrl,
-                          null,
-                          2
-                        )}</pre>`;
-
+                    return Promise.all(
+                      command.items.map((item) => {
+                        const encodedUrl = encodeSharingUrl(item.webUrl);
+                        return getDownloadLink(encodedUrl, accessToken);
+                      })
+                    )
+                      .then((downloadUrls) => {
                         // Send the downloadUrl in the port message here
                         port.postMessage({
                           type: "result",
                           id: message.data.id,
                           data: {
                             result: "success",
-                            downloadUrl: downloadUrl, // include the download URL in your response data
-                            command: command.items[0],
+                            downloadUrls: downloadUrls, // include the download URLs in your response data
+                            command: command.items,
                           },
                         });
 
-                        sendMessageBackToReactApp(
-                          downloadUrl,
-                          command.items[0]
-                        );
+                        sendMessageBackToReactApp(downloadUrls, command.items);
 
                         win.close();
                         window.close();
