@@ -37,10 +37,7 @@
         if (e) e.preventDefault();
 
         const authToken = await getToken();
-        if (!authToken) {
-          console.error("No access token received");
-          return;
-        }
+
         win = window.open("", "Picker", "width=800,height=600");
 
         const queryString = new URLSearchParams({
