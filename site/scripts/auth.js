@@ -16,6 +16,7 @@ async function getToken() {
 
   try {
     const accounts = app.getAllAccounts();
+    console.log(accounts);
     if (accounts.length === 0) {
       // No accounts detected, user must login
       try {
