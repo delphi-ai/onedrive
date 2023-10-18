@@ -1,4 +1,3 @@
-console.log("Choo choo!");
 const msalParams = {
   auth: {
     authority:
