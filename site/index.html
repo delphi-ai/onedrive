@@ -66,9 +66,8 @@
             const message = event.data;
 
             if (
-              message.type === "initialize" 
-              // &&
-              // message.channelId === params.messaging.channelId
+              message.type === "initialize" &&
+              message.channelId === params.messaging.channelId
             ) {
               port = event.ports[0];
 
