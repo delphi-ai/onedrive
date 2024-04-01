@@ -18,10 +18,10 @@
         selection: {
           mode: "multiple",
         },
-        messaging: {
-          origin: "https://onedrive-production.up.railway.app",
-          cid: "27",
-        },
+        // messaging: {
+        //   origin: "https://onedrive-production.up.railway.app",
+        //   channelId: "27",
+        // },
         typesAndSources: {
           mode: "files",
           pivots: {
@@ -43,6 +43,7 @@
 
         const queryString = new URLSearchParams({
           filePicker: JSON.stringify(params),
+          cid: "27",
         });
 
         const url = `${baseUrl}?${queryString}`;
