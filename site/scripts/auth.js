@@ -11,7 +11,7 @@ const app = new msal.PublicClientApplication(msalParams);
 async function getToken() {
   let accessToken = "";
 
-  const authParams = { scopes: ["Files.ReadWrite"] };
+  const authParams = { scopes: ["Files.ReadWrite", "Files.ReadWrite.All"] };
 
   try {
     // see if we have already the idtoken saved
