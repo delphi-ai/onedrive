@@ -18,10 +18,10 @@
         selection: {
           mode: "multiple",
         },
-        // messaging: {
-        //   origin: "https://onedrive-production.up.railway.app",
-        //   channelId: "27",
-        // },
+        messaging: {
+          origin: "https://onedrive-production.up.railway.app",
+          // channelId: "27",
+        },
         typesAndSources: {
           mode: "files",
           pivots: {
@@ -66,7 +66,7 @@
 
             if (
               message.type === "initialize" &&
-              message.channelId === params.messaging.channelId
+              // message.channelId === params.messaging.channelId
             ) {
               port = event.ports[0];
 
