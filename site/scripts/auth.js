@@ -11,7 +11,7 @@ const app = new msal.PublicClientApplication(msalParams);
 async function getToken() {
   let accessToken = "";
 
-  const authParams = { scopes: ["OneDrive.ReadWrite"] };
+  const authParams = { scopes: ["OneDrive.Read"] };
 
   try {
     // see if we have already the idtoken saved
