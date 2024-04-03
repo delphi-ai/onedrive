@@ -8,18 +8,10 @@ const msalParams = {
 
 const app = new msal.PublicClientApplication(msalParams);
 
-async function getToken(command) {
+async function getToken() {
   let accessToken = "";
-  let authParams = null;
 
-  switch (command.type) {
-    case "SharePoint":
-    case "SharePoint_SelfIssued":
-      authParams = { scopes: [`${combine(command.resource, ".default")}`] };
-      break;
-    default:
-      break;
-  }
+  const authParams = { scopes: ["Files.Read.All"] };
 
   try {
     // see if we have already the idtoken saved
