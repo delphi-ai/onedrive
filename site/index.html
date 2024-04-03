@@ -1,289 +1,88 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
+    <meta charset="UTF-8" />
+    <title>OneDrive File Picker Integration</title>
     <script
       type="text/javascript"
-      src="https://alcdn.msauth.net/browser/2.19.0/js/msal-browser.min.js"
+      src="https://js.live.net/v7.2/OneDrive.js"
     ></script>
+    <script src="https://alcdn.msauth.net/browser/2.19.0/js/msal-browser.min.js"></script>
+  </head>
+  <body>
+    <button id="launchPicker">Pick Files</button>
+
     <script type="text/javascript" src="scripts/auth.js"></script>
     <script>
-      const baseUrl = "https://onedrive.live.com/picker";
-      const channelId = uuid();
-
-      // the options we pass to the picker page through the querystring
-      const params = {
-        sdk: "7.2", 
-        entry: {
-          oneDrive: {},
-        },
-        authentication: {},
-        selection: {
-          mode: "multiple",
-        },
-        messaging: {
-          origin: "https://onedrive-production.up.railway.app",
-          channelId: channelId,
-        },
-        typesAndSources: {
-          mode: "files",
-          pivots: {
-            oneDrive: true,
-            recent: true,
-          },
+      // Initialize the MSAL application object
+      const msalConfig = {
+        auth: {
+          clientId: "7d4ac4d9-1861-4102-9323-982fc0815db5", // Your client ID
+          authority: "https://login.microsoftonline.com/consumers", // Authority
+          redirectUri: "https://onedrive-production.up.railway.app", // Redirect URI
         },
       };
+      const myMSALObj = new msal.PublicClientApplication(msalConfig);
 
-      let win = null;
-      let port = null;
-
-      async function launchPicker(e) {
-        if (e) e.preventDefault();
-
-        const authToken = await getToken();
-
-        win = window.open("", "Picker", "width=800,height=600");
-
-        const queryString = new URLSearchParams({
-          filePicker: JSON.stringify(params),
-        });
-
-        const url = `${baseUrl}?${queryString}`;
-
-        const form = win.document.createElement("form");
-        form.setAttribute("action", url);
-        form.setAttribute("method", "POST");
-        win.document.body.append(form);
-
-        const input = win.document.createElement("input");
-        input.setAttribute("type", "hidden");
-        input.setAttribute("name", "access_token");
-        input.setAttribute("value", authToken);
-        form.appendChild(input);
-
-        form.submit();
-
-        window.addEventListener("message", (event) => {
-          if (event.source && event.source === win) {
-            const message = event.data;
-
-            if (
-              message.type === "initialize" &&
-              message.channelId === params.messaging.channelId
-            ) {
-              port = event.ports[0];
-
-              port.addEventListener("message", messageListener);
-
-              port.start();
-
-              port.postMessage({
-                type: "activate",
+      async function getToken() {
+        try {
+          // Attempt to acquire token silently
+          const silentResult = await myMSALObj.acquireTokenSilent({
+            scopes: ["user.read", "files.readwrite.all"],
+          });
+          return silentResult.accessToken;
+        } catch (error) {
+          // If silent token acquisition fails, use popup
+          if (error instanceof msal.InteractionRequiredAuthError) {
+            try {
+              const popupResult = await myMSALObj.acquireTokenPopup({
+                scopes: ["user.read", "files.readwrite.all"],
               });
+              return popupResult.accessToken;
+            } catch (error) {
+              console.error(error);
             }
+          } else {
+            console.error(error);
           }
+        }
+        return null;
+      }
+
+      async function launchOneDrivePicker() {
+        const accessToken = await getToken();
+        if (!accessToken) {
+          console.log("Failed to get access token");
+          return;
+        }
+
+        const odOptions = {
+          clientId: msalConfig.auth.clientId,
+          action: "download",
+          multiSelect: true,
+          advanced: {
+            accessToken: accessToken,
+            redirectUri: msalConfig.auth.redirectUri,
+          },
+          success: function (files) {
+            console.log("Files picked: ", files);
+          },
+          cancel: function () {
+            console.log("User cancelled.");
+          },
+          error: function (e) {
+            console.log("Error: ", e);
+          },
+        };
+
+        OneDrive.open(odOptions);
+      }
+
+      document
+        .getElementById("launchPicker")
+        .addEventListener("click", function () {
+          launchOneDrivePicker();
         });
-      }
-
-      async function messageListener(message) {
-        switch (message.data.type) {
-          case "notification":
-            console.log(message.data);
-            break;
-
-          case "command":
-            port.postMessage({
-              type: "acknowledge",
-              id: message.data.id,
-            });
-
-            const command = message.data.data;
-
-            switch (command.command) {
-              case "authenticate":
-                // getToken is from scripts/auth.js
-                const token = await getToken();
-
-                if (typeof token !== "undefined" && token !== null) {
-                  port.postMessage({
-                    type: "result",
-                    id: message.data.id,
-                    data: {
-                      result: "token",
-                      token,
-                    },
-                  });
-                } else {
-                  console.error(
-                    `Could not get auth token for command: ${JSON.stringify(
-                      command
-                    )}`
-                  );
-                }
-
-                break;
-
-              case "close":
-                win.close();
-                break;
-
-              case "pick":
-                const encodedUrl = encodeSharingUrl(command.items[0].webUrl);
-
-                // Assume `accessToken` is retrieved through your authentication flow.
-                getToken()
-                  .then((accessToken) => {
-                    return Promise.all(
-                      command.items.map((item) => {
-                        const encodedUrl = encodeSharingUrl(item.webUrl);
-                        return getDownloadLink(encodedUrl, accessToken);
-                      })
-                    )
-                      .then((downloadUrls) => {
-                        // Send the downloadUrl in the port message here
-                        port.postMessage({
-                          type: "result",
-                          id: message.data.id,
-                          data: {
-                            result: "success",
-                            downloadUrls: downloadUrls, // include the download URLs in your response data
-                            command: command.items,
-                          },
-                        });
-
-                        const mergedData = command.items.map(
-                          (fileObj, index) => {
-                            return {
-                              ...fileObj,
-                              downloadUrl: downloadUrls[index],
-                            };
-                          }
-                        );
-
-                        sendMessageBackToReactApp(mergedData);
-
-                        win.close();
-                        window.close();
-                      })
-                      .catch((error) => {
-                        console.error(
-                          "There was a problem getting the download link:",
-                          error
-                        );
-
-                        // Send an error message or handle it appropriately
-                        port.postMessage({
-                          type: "result",
-                          id: message.data.id,
-                          data: {
-                            result: "error",
-                            message: error.message, // or another appropriate message indicating failure
-                          },
-                        });
-
-                        win.close();
-                      });
-                  })
-                  .catch((error) => {
-                    console.error(
-                      "There was a problem getting the token:",
-                      error
-                    );
-
-                    // Handle token error here
-                    // Send an error message or handle it appropriately
-                    port.postMessage({
-                      type: "result",
-                      id: message.data.id,
-                      data: {
-                        result: "error",
-                        message: error.message, // or another appropriate message indicating failure
-                      },
-                    });
-
-                    win.close();
-                  });
-
-                break;
-
-              default:
-                console.warn(
-                  `Unsupported command: ${JSON.stringify(command)}`,
-                  2
-                );
-
-                port.postMessage({
-                  result: "error",
-                  error: {
-                    code: "unsupportedCommand",
-                    message: command.command,
-                  },
-                  isExpected: true,
-                });
-                break;
-            }
-
-            break;
-        }
-      }
-
-      function encodeSharingUrl(webUrl) {
-        // Step 1: Base64 encode the URL.
-        const base64Value = btoa(webUrl);
-
-        // Step 2: Convert the base64 encoded result to unpadded base64url format.
-        const base64UrlValue = base64Value
-          .replace(/=+$/, "") // Remove any '=' characters from the end.
-          .replace(/\//g, "_") // Replace '/' characters with '_'.
-          .replace(/\+/g, "-"); // Replace '+' characters with '-'.
-
-        // Step 3: Append 'u!' at the beginning.
-        const encodedUrl = "u!" + base64UrlValue;
-
-        return encodedUrl;
-      }
-
-      async function getDownloadLink(encodedUrl, accessToken) {
-        const response = await fetch(
-          `https://api.onedrive.com/v1.0/shares/${encodedUrl}/driveItem`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
-        }
-
-        const data = await response.json();
-
-        // The download URL is available in the '@microsoft.graph.downloadUrl' property.
-        return data["@content.downloadUrl"];
-      }
-
-      // Usage:
-      const webUrl = "https://1drv.ms/w/s!AMOpTlWuqN5aghc";
-      const encodedUrl = encodeSharingUrl(webUrl);
-
-      function sendMessageBackToReactApp(message) {
-        if (window.opener) {
-          // The second argument "*" is the target origin. It's a security measure.
-          // In a real-world scenario, you should replace "*" with the origin of your React app.
-          window.opener.postMessage({ files: message }, "*");
-        } else {
-          console.error("No reference to opener window");
-        }
-      }
-      window.onload = function () {
-        launchPicker(); // Calling the function directly, no event involved.
-      };
     </script>
-  </head>
-
-  <body>
-    <br />
-    <div id="pickedFiles"></div>
   </body>
-
-  <script type="text/javascript"></script>
 </html>
