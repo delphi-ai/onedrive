@@ -8,18 +8,6 @@
     <script>
       const baseUrl = "https://onedrive.live.com/picker";
 
-      /**
-       * Combines an arbitrary set of paths ensuring and normalizes the slashes
-       *
-       * @param paths 0 to n path parts to combine
-       */
-      function combine(...paths) {
-        return paths
-          .map((path) => path.replace(/^[\\|/]/, "").replace(/[\\|/]$/, ""))
-          .join("/")
-          .replace(/\\/g, "/");
-      }
-
       // the options we pass to the picker page through the querystring
       const params = {
         sdk: "8.0",
@@ -50,20 +38,13 @@
 
         win = window.open("", "Picker", "width=800,height=600");
 
-        const authToken = await getToken({
-          resource: baseUrl,
-          command: "authenticate",
-          type: "SharePoint",
-        });
+        const authToken = await getToken();
 
         const queryString = new URLSearchParams({
           filePicker: JSON.stringify(params),
         });
 
-        const url = combine(
-          baseUrl,
-          `_layouts/15/FilePicker.aspx?${queryString}`
-        );
+        const url = `${baseUrl}?${queryString}`;
 
         const form = win.document.createElement("form");
         form.setAttribute("action", url);
@@ -117,7 +98,7 @@
             switch (command.command) {
               case "authenticate":
                 // getToken is from scripts/auth.js
-                const token = await getToken(command);
+                const token = await getToken();
 
                 if (typeof token !== "undefined" && token !== null) {
                   port.postMessage({
