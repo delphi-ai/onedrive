@@ -1,7 +1,7 @@
 const msalParams = {
   auth: {
-    authority: "https://login.microsoftonline.com/consumers",
-    clientId: "439d927e-1e3d-418d-912b-da1364f5a46c",
+    authority: "https://login.microsoftonline.com/ca715ecc-f8ef-4813-bd77-2a7cf1a8ddde",
+    clientId: "7d4ac4d9-1861-4102-9323-982fc0815db5",
     redirectUri: "https://onedrive-production.up.railway.app",
   },
 };
@@ -11,7 +11,7 @@ const app = new msal.PublicClientApplication(msalParams);
 async function getToken() {
   let accessToken = "";
 
-  const authParams = { scopes: ["Files.ReadWrite", "Files.ReadWrite.All"] };
+  const authParams = { scopes: ["Files.ReadWrite", "Files.ReadWrite.All", "User.Read"] };
 
   try {
     // see if we have already the idtoken saved
