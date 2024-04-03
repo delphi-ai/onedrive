@@ -8,10 +8,18 @@ const msalParams = {
 
 const app = new msal.PublicClientApplication(msalParams);
 
-async function getToken() {
+async function getToken(command) {
   let accessToken = "";
+  let authParams = null;
 
-  const authParams = { scopes: ["OneDrive.ReadOnly"] };
+  switch (command.type) {
+    case "SharePoint":
+    case "SharePoint_SelfIssued":
+      authParams = { scopes: [`${combine(command.resource, ".default")}`] };
+      break;
+    default:
+      break;
+  }
 
   try {
     // see if we have already the idtoken saved
