@@ -70,12 +70,15 @@
               port = event.ports[0];
 
               port.addEventListener("message", messageListener);
+              console.log("GOT MESSAGE");
 
               port.start();
 
               port.postMessage({
                 type: "activate",
               });
+            } else {
+              console.log("FAILED MESSAGE");
             }
           }
         });
