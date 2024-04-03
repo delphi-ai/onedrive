@@ -1,7 +1,7 @@
 const msalParams = {
   auth: {
     authority: "https://login.microsoftonline.com/consumers",
-    clientId: "7d4ac4d9-1861-4102-9323-982fc0815db5",
+    clientId: "439d927e-1e3d-418d-912b-da1364f5a46c",
     redirectUri: "https://onedrive-production.up.railway.app",
   },
 };
