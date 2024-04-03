@@ -11,17 +11,17 @@
       // the options we pass to the picker page through the querystring
       const params = {
         sdk: "8.0", 
-        entry: {
-          oneDrive: {},
-        },
+        // entry: {
+        //   oneDrive: {},
+        // },
         authentication: {},
         selection: {
           mode: "multiple",
         },
-        // messaging: {
-        //   origin: "https://onedrive-production.up.railway.app",
-        //   channelId: "27",
-        // },
+        messaging: {
+          origin: "https://onedrive-production.up.railway.app",
+          channelId: "27",
+        },
         typesAndSources: {
           mode: "files",
           pivots: {
@@ -65,9 +65,8 @@
             const message = event.data;
 
             if (
-              message.type === "initialize" 
-              // &&
-              // message.channelId === params.messaging.channelId
+              message.type === "initialize" &&
+              message.channelId === params.messaging.channelId
             ) {
               port = event.ports[0];
 
