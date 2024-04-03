@@ -57,10 +57,10 @@
             const message = event.data;
 
             if (
-              message.type === "initialize"
-              // &&
-              // message.channelId === params.messaging.channelId
+              message.type === "initialize" &&
+              message.channelId === params.messaging.channelId
             ) {
+              console.log("Initiating port!");
               port = event.ports[0];
 
               port.addEventListener("message", messageListener);
