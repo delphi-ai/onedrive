@@ -7,6 +7,7 @@
     <script type="text/javascript" src="scripts/auth.js"></script>
     <script>
       const baseUrl = "https://onedrive.live.com/picker";
+      const channelId = uuid();
 
       // the options we pass to the picker page through the querystring
       const params = {
@@ -20,7 +21,7 @@
         },
         messaging: {
           origin: "https://onedrive-production.up.railway.app",
-          channelId: "27",
+          channelId: channelId,
         },
         typesAndSources: {
           mode: "files",
