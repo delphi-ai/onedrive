@@ -28,7 +28,5 @@ async function getToken() {
     }
   }
 
-  console.log("ACCESS TOKEN", accessToken);
-
   return accessToken;
 }
