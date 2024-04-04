@@ -124,6 +124,8 @@
                   "pickedFiles"
                 ).innerHTML = `<pre>${JSON.stringify(command, null, 2)}</pre>`;
 
+                console.log("Port status", port);
+
                 port.postMessage({
                   type: "result",
                   id: message.data.id,
